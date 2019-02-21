@@ -1,8 +1,4 @@
-DROP SCHEMA IF EXISTS workoutLog;
-
-CREATE SCHEMA workoutLog;
-
-USE workoutLog;
+USE oyvinkla_workoutLog;
 
 CREATE TABLE workout (
     workoutId INT NOT NULL AUTO_INCREMENT,

@@ -37,7 +37,7 @@ dbInsert <- function(con, table, data_frame){
   dbSendQuery(con, query)
 }
 
-con <- DBI::dbConnect(MySQL(), host="142.93.237.73",
+con <- DBI::dbConnect(MySQL(), host="mysql.stud.ntnu.no",
                       password="dbpw",
                       dbname="oyvinkla_workoutLog", user="oyvinkla")
 

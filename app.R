@@ -37,7 +37,7 @@ dbInsert <- function(con, table, data_frame){
   dbSendQuery(con, query)
 }
 
-con <- DBI::dbConnect(MySQL(), host="mysql.stud.ntnu.no",
+con <- DBI::dbConnect(MySQL(), host="142.93.237.73",
                       password="dbpw",
                       dbname="oyvinkla_workoutLog", user="oyvinkla")
 
@@ -187,10 +187,11 @@ server <- function(input, output, session) {
     exercise_names(new_exercise_names)
     
     last_exercise_id <- dbGetQuery(con, "select last_insert_id()")
+    last_exercise_id <- max(last_exercise_id, 0)
     
     exercise_without_equipment_df <- exercise_without_equipment_df %>% 
       add_row(id = "NULL",
-              exerciseId = last_exercise_id,
+              exerciseId = as.character(last_exercise_id),
               description = input$bodyExerciseDescription)
     dbInsert(con, "exerciseWithoutEquipment", exercise_without_equipment_df)
     exercise_without_equipment_df <- exercise_without_equipment_df[-1, ]
@@ -211,6 +212,7 @@ server <- function(input, output, session) {
     exercise_names(new_exercise_names)
     
     last_exercise_id <- dbGetQuery(con, "select last_insert_id()")
+    last_exercise_id <- max(last_exercise_id, 0)
     
     selected_equipment <- input$equipmentSelection
     equipment_id <- tbl(con, "equipment") %>%
@@ -268,6 +270,7 @@ server <- function(input, output, session) {
     workout_df <- workout_df[-1, ]
     
     last_workout_id <- dbGetQuery(con, "select last_insert_id()")
+    last_workout_id <- max(last_workout_id, 0)
     
     for (exercise in input$exerciseSelection){
       id <- tbl(con, "exercise") %>%
@@ -307,6 +310,7 @@ server <- function(input, output, session) {
     dbInsert(con, "exerciseGroup", exercise_group_df)
     
     last_group_id <- dbGetQuery(con, "select last_insert_id()")
+    last_group_id <- max(last_group_id, 0)
     
     for (exercise in input$groupedExercises){
       id <- tbl(con, "exercise") %>%

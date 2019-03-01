@@ -48,10 +48,6 @@ con <- dbPool(drv = RMySQL::MySQL(),
                username = env$username,
                password = env$password)
 
-#con <- DBI::dbConnect(MySQL(), host="104.248.92.227",
-#                     password="dbpw",
-#                      dbname="oyvinkla_workoutLog", user="oyvinkla")
-
 workout_df <- tibble(id = character(),
                      datetime = character(),
                      length = integer(),

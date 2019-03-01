@@ -1,10 +1,14 @@
-library(shiny)
+library("shiny")
+library("pool")
 library("dplyr")
 library("RMySQL")
 library("stringr")
 library("purrr")
 library("lubridate")
 library("dbplyr")
+library("ggplot2")
+
+source("load_env.R")
 
 sqlString <- function(value){
   return(paste0("\"", as.character(value), "\""))
@@ -34,12 +38,19 @@ dbInsert <- function(con, table, data_frame){
                                 sqlAdapt(), "),")
   }
   query <- query %>% str_sub(1, -2) %>% paste0(";")
-  dbSendQuery(con, query)
+  dbGetQuery(con, query)
 }
 
-con <- DBI::dbConnect(MySQL(), host="mysql.stud.ntnu.no",
-                      password="dbpw",
-                      dbname="oyvinkla_workoutLog", user="oyvinkla")
+con <- dbPool(drv = RMySQL::MySQL(),
+               host = env$host,
+               dbname = env$dbname,
+              port = 3306,
+               username = env$username,
+               password = env$password)
+
+#con <- DBI::dbConnect(MySQL(), host="104.248.92.227",
+#                     password="dbpw",
+#                      dbname="oyvinkla_workoutLog", user="oyvinkla")
 
 workout_df <- tibble(id = character(),
                      datetime = character(),
@@ -75,7 +86,7 @@ exercise_in_group_df <- tibble(groupId = character(),
                                exerciseId = character())
 
 # Define UI for application that draws a histogram
-ui <- fluidPage(
+ui <- fluidPage(theme =shinythemes::shinytheme("lumen"),
         titlePanel("Workout Log"),
         tabsetPanel(         
         tabPanel("Workout Registration",
@@ -152,7 +163,9 @@ ui <- fluidPage(
                DT::dataTableOutput("workoutWindow")),
       tabPanel("Show exercise groups",
                uiOutput("similarGroup"),
-               DT::dataTableOutput("exerciseGroupDT"))
+               DT::dataTableOutput("exerciseGroupDT")),
+      tabPanel("Performance vs shape",
+               plotOutput("pVs"))
       )
 )
 
@@ -368,6 +381,21 @@ server <- function(input, output, session) {
     tbl(con, "exerciseGroup") %>%
       filter(groupID %in% ids) %>%
       collect()
+  })
+  
+  output$pVs <- renderPlot({
+    na <- input$workoutSubmit
+    
+    df <- tbl(con, "workout") %>%
+      select(performance, shape) %>%
+      collect()
+    
+    df %>% ggplot(aes(x=shape, y=performance)) +
+      geom_point() + 
+      geom_smooth(method = "lm") + 
+      xlim(1, 10) + 
+      ylim(1, 10)
+    
   })
    
 }
